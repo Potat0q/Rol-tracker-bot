@@ -6,7 +6,7 @@ import os
 TOKEN = os.getenv("TOKEN")
 
 ROL_OBJETIVO = "Tsundere"
-SONIDO = "I'm not a dere!.mp3"
+SONIDO = "dere.mp3"
 
 intents = discord.Intents.default()
 intents.voice_states = True
