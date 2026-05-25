@@ -7,7 +7,7 @@ from discord.ext import commands
 import asyncio
 import os
 
-# Flask para Render
+# Flask para mantener Render vivo
 app = Flask('')
 
 @app.route('/')
@@ -21,7 +21,7 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
-# Token
+# Token secreto
 TOKEN = os.getenv("TOKEN")
 
 # Configuración
@@ -42,11 +42,11 @@ async def on_ready():
 @bot.event
 async def on_voice_state_update(member, before, after):
 
-    # Ignorar mute/cámara/stream
+    # Ignorar mute, cámara, stream, etc
     if before.channel == after.channel:
         return
 
-    # Si salió del VC, resetear
+    # Si salió del VC, resetear usuario
     if before.channel is not None and after.channel is None:
         usuarios_activados.discard(member.id)
         return
@@ -58,34 +58,40 @@ async def on_voice_state_update(member, before, after):
     roles = [role.name.lower() for role in member.roles]
 
     # Verificar rol
-    if ROL_OBJETIVO.lower() in roles:
+    if ROL_OBJETIVO.lower() not in roles:
+        return
 
-        # Evitar repetir mientras siga dentro
-        if member.id in usuarios_activados:
-            return
+    # Evitar repetir mientras siga dentro
+    if member.id in usuarios_activados:
+        return
 
+    canal = after.channel
+
+    # Evitar múltiples conexiones del bot
+    if discord.utils.get(bot.voice_clients, guild=member.guild):
+        return
+
+    try:
+        vc = await canal.connect()
+
+        # Marcar usuario como activado
         usuarios_activados.add(member.id)
 
-        canal = after.channel
+        audio = discord.FFmpegPCMAudio(SONIDO)
 
-        # Evitar múltiples conexiones
-        if discord.utils.get(bot.voice_clients, guild=member.guild):
-            return
+        vc.play(audio)
 
-        try:
-            vc = await canal.connect()
+        # Esperar duración del audio
+        await asyncio.sleep(10)
 
-            audio = discord.FFmpegPCMAudio(SONIDO)
+        # Desconectar bot
+        await vc.disconnect(force=True)
 
-            vc.play(audio)
+    except Exception as e:
+        print("Error:", e)
 
-            # Esperar duración del audio
-            await asyncio.sleep(10)
-
-            await vc.disconnect(force=True)
-
-        except Exception as e:
-            print("Error:", e)
+        # Liberar usuario si hubo error
+        usuarios_activados.discard(member.id)
 
 # Mantener Render vivo
 keep_alive()
