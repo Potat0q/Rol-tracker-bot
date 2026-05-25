@@ -47,7 +47,10 @@ intents.voice_states = True
 intents.members = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(
+    command_prefix="!",
+    intents=intents
+)
 
 # =========================
 # READY
@@ -59,7 +62,11 @@ async def on_ready():
     guild = discord.Object(id=1202033252047794237)
 
     try:
-        synced = await bot.tree.sync(guild=1202033252047794237)
+
+        synced = await bot.tree.sync(
+            guild=guild
+        )
+
         print(f"Slash commands sincronizados: {len(synced)}")
 
     except Exception as e:
@@ -120,42 +127,10 @@ async def tsundere(
     )
 
     if porcentaje == 100:
+
         embed.set_image(
             url="https://media.tenor.com/images/0b6b5a5d9f6b3c33b3c6fd5a7f5c5a62/tenor.gif"
         )
-
-    await interaction.response.send_message(embed=embed)
-
-# =========================
-# /BAKA
-# =========================
-
-@bot.tree.command(
-    name="baka",
-    description="Insulta amistosamente",
-    guild=discord.Object(id=1202033252047794237)
-)
-async def baka(
-    interaction: discord.Interaction,
-    user: discord.Member
-):
-
-    frases = [
-        "B-BAKA!! 💢",
-        "Tu gameplay preocupa científicamente.",
-        "Ni un NPC haría eso.",
-        "Tu IQ compite con una tostadora.",
-        "Tch... inútil.",
-        "Certified clown."
-    ]
-
-    frase = random.choice(frases)
-
-    embed = discord.Embed(
-        title="💢 Baka Detector",
-        description=f"{user.mention}\n\n{frase}",
-        color=discord.Color.red()
-    )
 
     await interaction.response.send_message(embed=embed)
 
@@ -200,7 +175,7 @@ async def gd(
         rank = data.get("rank", "???")
 
         embed = discord.Embed(
-            title=f"🎮 Geometry Dash Profile",
+            title="🎮 Geometry Dash Profile",
             description=f"Stats de **{username}**",
             color=discord.Color.orange()
         )
@@ -248,7 +223,9 @@ async def gd(
             text=random.choice(comentarios)
         )
 
-        await interaction.followup.send(embed=embed)
+        await interaction.followup.send(
+            embed=embed
+        )
 
     except Exception as e:
 
@@ -256,6 +233,116 @@ async def gd(
 
         await interaction.followup.send(
             "❌ Error obteniendo stats de GD."
+        )
+
+# =========================
+# WEBHOOK LOGGER READER
+# =========================
+
+@bot.event
+async def on_message(message):
+
+    # Detectar solo webhooks
+    if not message.webhook_id:
+        return
+
+    # Ignorar mensajes vacíos
+    if not message.content:
+        return
+
+    contenido = message.content.lower()
+
+    # Detectar completions
+    if "completed" in contenido:
+
+        dificultad = "😈 Demon"
+
+        if "extreme" in contenido:
+            dificultad = "🔥 Extreme Demon"
+
+        elif "insane" in contenido:
+            dificultad = "💀 Insane Demon"
+
+        elif "hard demon" in contenido:
+            dificultad = "👹 Hard Demon"
+
+        elif "medium demon" in contenido:
+            dificultad = "😵 Medium Demon"
+
+        elif "easy demon" in contenido:
+            dificultad = "😌 Easy Demon"
+
+        frases = [
+            "P-pero no es como si estuviera impresionada o algo... b-baka!",
+            "Mental illness detected.",
+            "wave carried.",
+            "touch grass difficulty impossible.",
+            "gd player moment.",
+            "robtop is watching.",
+            "human sanity no longer detected.",
+            "geometry dash player spotted."
+        ]
+
+        embed = discord.Embed(
+            title="😈 DEMON COMPLETED",
+            description=message.content,
+            color=discord.Color.red()
+        )
+
+        embed.add_field(
+            name="Difficulty",
+            value=dificultad,
+            inline=False
+        )
+
+        embed.add_field(
+            name="Tsundere Comment",
+            value=random.choice(frases),
+            inline=False
+        )
+
+        # Si hay screenshot
+        if message.attachments:
+
+            embed.set_image(
+                url=message.attachments[0].url
+            )
+
+        await message.channel.send(
+            embed=embed
+        )
+
+    # Detectar new best
+    elif "new best" in contenido:
+
+        frases = [
+            "SO CLOSE 💀",
+            "98% incident detected.",
+            "pain.",
+            "mental destruction complete.",
+            "robtop laughed at this."
+        ]
+
+        embed = discord.Embed(
+            title="🔥 NEW BEST",
+            description=message.content,
+            color=discord.Color.orange()
+        )
+
+        embed.add_field(
+            name="Comment",
+            value=random.choice(frases),
+            inline=False
+        )
+
+        if message.attachments:
+
+            embed.set_image(
+                url=message.attachments[0].url
+            )
+
+        await message.channel.send(
+            embed=embed
         )
 
 # =========================
@@ -297,15 +384,23 @@ async def on_voice_state_update(member, before, after):
 
         # Limpiar conexiones bug
         if member.guild.voice_client:
-            await member.guild.voice_client.disconnect(force=True)
 
-        vc = await canal.connect(reconnect=True)
+            await member.guild.voice_client.disconnect(
+                force=True
+            )
 
-        audio = discord.FFmpegPCMAudio(SONIDO)
+        vc = await canal.connect(
+            reconnect=True
+        )
+
+        audio = discord.FFmpegPCMAudio(
+            SONIDO
+        )
 
         vc.play(audio)
 
         while vc.is_playing():
+
             await asyncio.sleep(1)
 
         await asyncio.sleep(1)
@@ -319,8 +414,13 @@ async def on_voice_state_update(member, before, after):
         usuarios_activados.discard(member.id)
 
         try:
+
             if member.guild.voice_client:
-                await member.guild.voice_client.disconnect(force=True)
+
+                await member.guild.voice_client.disconnect(
+                    force=True
+                )
+
         except:
             pass
 
