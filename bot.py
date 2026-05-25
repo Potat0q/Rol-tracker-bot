@@ -10,7 +10,7 @@ import os
 import random
 
 # =========================
-# FLASK PARA RENDER
+# FLASK
 # =========================
 
 app = Flask('')
@@ -35,6 +35,9 @@ TOKEN = os.getenv("TOKEN")
 ROL_OBJETIVO = "Tsundere"
 SONIDO = "dere.mp3"
 
+# PONÉ TU ID DEL SERVER ACÁ
+GUILD_ID = 1202033252047794237
+
 # =========================
 # INTENTS
 # =========================
@@ -47,27 +50,31 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # =========================
-# BOT READY
+# READY
 # =========================
 
 @bot.event
 async def on_ready():
 
+    guild = discord.Object(id=GUILD_ID)
+
     try:
-        synced = await bot.tree.sync()
+        synced = await bot.tree.sync(guild=guild)
         print(f"Slash commands sincronizados: {len(synced)}")
+
     except Exception as e:
         print(e)
 
     print(f"Bot conectado como {bot.user}")
 
 # =========================
-# SLASH COMMANDS
+# SLASH COMMAND
 # =========================
 
 @bot.tree.command(
     name="tsundere",
-    description="Mide el nivel tsundere de alguien"
+    description="Mide el nivel tsundere",
+    guild=discord.Object(id=GUILD_ID)
 )
 async def tsundere(
     interaction: discord.Interaction,
@@ -79,9 +86,9 @@ async def tsundere(
     frases = [
         "P-pero no es como si me gustaras o algo... b-baka!",
         "N-no te confundas!",
-        "Hmph... supongo que eres algo tsundere.",
-        "No creas que hice esto por ti 💢",
-        "Tch... qué molesto eres."
+        "Tch... qué molesto eres 💢",
+        "Hmph...",
+        "No creas que hice esto por ti."
     ]
 
     frase = random.choice(frases)
@@ -114,12 +121,10 @@ async def on_voice_state_update(member, before, after):
     # Si salió del VC
     if before.channel is not None and after.channel is None:
 
-        if member.id in usuarios_activados:
-            usuarios_activados.remove(member.id)
-
+        usuarios_activados.discard(member.id)
         return
 
-    # Si no entró a canal
+    # Si no entró a VC
     if after.channel is None:
         return
 
@@ -129,7 +134,7 @@ async def on_voice_state_update(member, before, after):
     if ROL_OBJETIVO.lower() not in roles:
         return
 
-    # Evitar repetir mientras siga dentro
+    # Evitar repetir
     if member.id in usuarios_activados:
         return
 
@@ -137,41 +142,36 @@ async def on_voice_state_update(member, before, after):
 
     try:
 
-        # Marcar usuario
         usuarios_activados.add(member.id)
 
-        # Conectar
+        # Desconectar conexiones bugueadas
+        if member.guild.voice_client:
+            await member.guild.voice_client.disconnect(force=True)
+
         vc = await canal.connect(reconnect=True)
 
-        # Audio
         audio = discord.FFmpegPCMAudio(SONIDO)
 
         vc.play(audio)
 
-        # Esperar a que termine REALMENTE
         while vc.is_playing():
             await asyncio.sleep(1)
 
-        # Esperita extra anti-bug
         await asyncio.sleep(1)
 
-        # Desconectar
         await vc.disconnect(force=True)
 
     except Exception as e:
 
         print("Error:", e)
 
-        # Limpiar conexión bugueada
+        usuarios_activados.discard(member.id)
+
         try:
             if member.guild.voice_client:
                 await member.guild.voice_client.disconnect(force=True)
         except:
             pass
-
-        # Permitir reactivación
-        if member.id in usuarios_activados:
-            usuarios_activados.remove(member.id)
 
 # =========================
 # START
