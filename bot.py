@@ -1,7 +1,13 @@
 usuarios_activados = set()
+
 from flask import Flask
 from threading import Thread
+import discord
+from discord.ext import commands
+import asyncio
+import os
 
+# Flask para mantener vivo Render
 app = Flask('')
 
 @app.route('/')
@@ -15,16 +21,14 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
-import discord
-from discord.ext import commands
-import asyncio
-import os
-
+# Token secreto
 TOKEN = os.getenv("TOKEN")
 
+# Config
 ROL_OBJETIVO = "Tsundere"
 SONIDO = "dere.mp3"
 
+# Intents
 intents = discord.Intents.default()
 intents.voice_states = True
 intents.members = True
@@ -38,26 +42,33 @@ async def on_ready():
 @bot.event
 async def on_voice_state_update(member, before, after):
 
-    # Ignorar cambios de cámara/mute/etc
-if before.channel == after.channel:
-    return
+    # Ignorar mute, cámara, stream, etc
+    if before.channel == after.channel:
+        return
 
-# Si salió del VC
-if after.channel is None:
-    return
+    # Si salió del VC, resetear activación
+    if before.channel is not None and after.channel is None:
+        usuarios_activados.discard(member.id)
+        return
+
+    # Si no entró a un canal
+    if after.channel is None:
+        return
 
     roles = [role.name.lower() for role in member.roles]
 
+    # Verificar rol
     if ROL_OBJETIVO.lower() in roles:
 
-    # Evitar repetir mientras siga dentro
-    if member.id in usuarios_activados:
-        return
+        # Evitar repetir mientras siga dentro
+        if member.id in usuarios_activados:
+            return
 
-    usuarios_activados.add(member.id)
+        usuarios_activados.add(member.id)
 
         canal = after.channel
 
+        # Evitar múltiples conexiones del bot
         if discord.utils.get(bot.voice_clients, guild=member.guild):
             return
 
@@ -75,5 +86,9 @@ if after.channel is None:
 
         except Exception as e:
             print("Error:", e)
+
+# Mantener Render vivo
 keep_alive()
+
+# Iniciar bot
 bot.run(TOKEN)
