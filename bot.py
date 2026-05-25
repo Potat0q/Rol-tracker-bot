@@ -56,7 +56,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
 
-    guild = discord.Object(id=GUILD_ID)
+    guild = discord.Object(id=1202033252047794237)
 
     try:
         synced = await bot.tree.sync(guild=guild)
@@ -74,7 +74,7 @@ async def on_ready():
 @bot.tree.command(
     name="tsundere",
     description="Mide el nivel tsundere",
-    guild=discord.Object(id=GUILD_ID)
+    guild=discord.Object(id=1202033252047794237)
 )
 async def tsundere(
     interaction: discord.Interaction,
