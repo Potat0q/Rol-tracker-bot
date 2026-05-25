@@ -1,3 +1,4 @@
+usuarios_activados = set()
 from flask import Flask
 from threading import Thread
 
@@ -37,12 +38,23 @@ async def on_ready():
 @bot.event
 async def on_voice_state_update(member, before, after):
 
-    if after.channel is None:
-        return
+    # Ignorar cambios de cámara/mute/etc
+if before.channel == after.channel:
+    return
+
+# Si salió del VC
+if after.channel is None:
+    return
 
     roles = [role.name.lower() for role in member.roles]
 
     if ROL_OBJETIVO.lower() in roles:
+
+    # Evitar repetir mientras siga dentro
+    if member.id in usuarios_activados:
+        return
+
+    usuarios_activados.add(member.id)
 
         canal = after.channel
 
