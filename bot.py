@@ -56,10 +56,10 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
 
-    guild = discord.Object(id=GUILD_ID)
+    guild = discord.Object(id=1202033252047794237)
 
     try:
-        synced = await bot.tree.sync(guild=guild)
+        synced = await bot.tree.sync(guild=1202033252047794237)
         print(f"Slash commands sincronizados: {len(synced)}")
 
     except Exception as e:
@@ -74,7 +74,7 @@ async def on_ready():
 @bot.tree.command(
     name="tsundere",
     description="Mide el nivel tsundere",
-    guild=discord.Object(id=GUILD_ID)
+    guild=discord.Object(id=1202033252047794237)
 )
 async def tsundere(
     interaction: discord.Interaction,
@@ -133,7 +133,7 @@ async def tsundere(
 @bot.tree.command(
     name="baka",
     description="Insulta amistosamente",
-    guild=discord.Object(id=GUILD_ID)
+    guild=discord.Object(id=1202033252047794237)
 )
 async def baka(
     interaction: discord.Interaction,
@@ -166,7 +166,7 @@ async def baka(
 @bot.tree.command(
     name="gd",
     description="Muestra stats de Geometry Dash",
-    guild=discord.Object(id=GUILD_ID)
+    guild=discord.Object(id=1202033252047794237)
 )
 async def gd(
     interaction: discord.Interaction,
