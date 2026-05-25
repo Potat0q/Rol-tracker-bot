@@ -1,3 +1,19 @@
+from flask import Flask
+from threading import Thread
+
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot vivo"
+
+def run():
+    app.run(host='0.0.0.0', port=10000)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+
 import discord
 from discord.ext import commands
 import asyncio
@@ -47,5 +63,5 @@ async def on_voice_state_update(member, before, after):
 
         except Exception as e:
             print("Error:", e)
-
+keep_alive()
 bot.run(TOKEN)
