@@ -7,7 +7,7 @@ from discord.ext import commands
 import asyncio
 import os
 
-# Flask para mantener vivo Render
+# Flask para Render
 app = Flask('')
 
 @app.route('/')
@@ -21,10 +21,10 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
-# Token secreto
+# Token
 TOKEN = os.getenv("TOKEN")
 
-# Config
+# Configuración
 ROL_OBJETIVO = "Tsundere"
 SONIDO = "dere.mp3"
 
@@ -42,11 +42,11 @@ async def on_ready():
 @bot.event
 async def on_voice_state_update(member, before, after):
 
-    # Ignorar mute, cámara, stream, etc
+    # Ignorar mute/cámara/stream
     if before.channel == after.channel:
         return
 
-    # Si salió del VC, resetear activación
+    # Si salió del VC, resetear
     if before.channel is not None and after.channel is None:
         usuarios_activados.discard(member.id)
         return
@@ -68,7 +68,7 @@ async def on_voice_state_update(member, before, after):
 
         canal = after.channel
 
-        # Evitar múltiples conexiones del bot
+        # Evitar múltiples conexiones
         if discord.utils.get(bot.voice_clients, guild=member.guild):
             return
 
@@ -79,10 +79,10 @@ async def on_voice_state_update(member, before, after):
 
             vc.play(audio)
 
-            while vc.is_playing():
-                await asyncio.sleep(1)
+            # Esperar duración del audio
+            await asyncio.sleep(10)
 
-            await vc.disconnect()
+            await vc.disconnect(force=True)
 
         except Exception as e:
             print("Error:", e)
